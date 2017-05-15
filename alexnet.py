@@ -116,17 +116,16 @@ class AlexNet(object):
     save_dict = {"conv1": None, "conv2": None, "conv3": None, "conv4": None,
                  "conv5": None, "fc6": None, "fc7": None, "fc8": None}
     for op_name in save_dict.keys():
-      with tf.variable_scope(op_name, reuse=False):
-        ## tmpWnBArray = np.ndarray([2], dtype=np.ndarray)
-        ## tmpWnBArray
+      with tf.variable_scope(op_name, reuse=True):
+        
         weights = tf.get_variable("weights", trainable=False)
         biases = tf.get_variable("biases", trainable=False)
-        w = sess.run(weights)
-        b = sess.run(biases)
+        w = session.run(weights)
+        b = session.run(biases)
 
-        tmpWnBArray = np.array([w, b])
+        tmpWnBArray = [w, b]
         save_dict[op_name] = tmpWnBArray
-        del tmpWnBArray
+        # del tmpWnBArray
     saver = np.array(save_dict)
     np.save(file_path, saver)
 

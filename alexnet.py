@@ -1,5 +1,5 @@
 """
-This is an TensorFLow implementation of AlexNet by Alex Krizhevsky at all 
+This is an TensorFLow implementation of AlexNet by Alex Krizhevsky et al
 (http://papers.nips.cc/paper/4824-imagenet-classification-with-deep-convolutional-neural-networks.pdf)
 
 Following my blogpost at:
@@ -8,12 +8,12 @@ https://kratzert.github.io/2017/02/24/finetuning-alexnet-with-tensorflow.html
 This script enables finetuning AlexNet on any given Dataset with any number of classes.
 The structure of this script is strongly inspired by the fast.ai Deep Learning
 class by Jeremy Howard and Rachel Thomas, especially their vgg16 finetuning
-script:  
+script:
 - https://github.com/fastai/courses/blob/master/deeplearning1/nbs/vgg16.py
 
 
-The pretrained weights can be downloaded here and should be placed in the same folder: 
-- http://www.cs.toronto.edu/~guerzhoy/tf_alexnet/  
+The pretrained weights can be downloaded here and should be placed in the same folder:
+- http://www.cs.toronto.edu/~guerzhoy/tf_alexnet/
 
 @author: Frederik Kratzert (contact: f.kratzert(at)gmail.com)
 """
@@ -34,7 +34,7 @@ class AlexNet(object):
     self.KEEP_PROB = keep_prob
     self.SKIP_LAYER = skip_layer
 
-    if weights_path == 'DEFAULT':      
+    if weights_path == 'DEFAULT':
       self.WEIGHTS_PATH = 'bvlc_alexnet.npy'
     else:
       self.WEIGHTS_PATH = weights_path
@@ -112,6 +112,24 @@ class AlexNet(object):
               var = tf.get_variable('weights', trainable=False)
               session.run(var.assign(data))
 
+  def save_wnb(self, session, file_path="lidc_wnb"):
+    save_dict = {"conv1": None, "conv2": None, "conv3": None, "conv4": None,
+                 "conv5": None, "fc6": None, "fc7": None, "fc8": None}
+    for op_name in save_dict.keys():
+      with tf.variable_scope(op_name, reuse=False):
+        ## tmpWnBArray = np.ndarray([2], dtype=np.ndarray)
+        ## tmpWnBArray
+        weights = tf.get_variable("weights", trainable=False)
+        biases = tf.get_variable("biases", trainable=False)
+        w = sess.run(weights)
+        b = sess.run(biases)
+
+        tmpWnBArray = np.array([w, b])
+        save_dict[op_name] = tmpWnBArray
+        del tmpWnBArray
+    saver = np.array(save_dict)
+    np.save(file_path, saver)
+
 
 """
 Predefine all necessary layer for the AlexNet
@@ -134,7 +152,8 @@ def conv(x, filter_height, filter_width, num_filters, stride_y, stride_x, name,
   with tf.variable_scope(name) as scope:
     # Create tf variables for the weights and biases of the conv layer
     # filter in CNN is also known as shared weight, Thus weight is just filter
-    weights = tf.get_variable('weights', shape=[filter_height, filter_width, input_channels/groups, num_filters])
+    weights = tf.get_variable('weights', shape=[filter_height, filter_width, 
+                                                input_channels/groups, num_filters])
     biases = tf.get_variable('biases', shape=[num_filters])
 
     # Only one group (GPU)
@@ -190,7 +209,7 @@ def lrn(x, radius, alpha, beta, name, bias=1.0):
   sqr_sum[a, b, c, d] = sum(input[a, b, c, d - depth_radius : d + depth_radius + 1] ** 2)
   output = input / (bias + alpha * sqr_sum) ** beta
   """
-  return tf.nn.local_response_normalization(x, depth_radiu=radius, alpha=alpha,
+  return tf.nn.local_response_normalization(x, depth_radius=radius, alpha=alpha,
                                             beta=beta, bias=bias, name=name)
 
 def dropout(x, keep_prob):

@@ -34,6 +34,7 @@ batch_size = 128
 # Network params
 dropout_rate = 0.5
 num_classes = 2
+# Train All layers
 train_layers = ['conv1', 'conv2', 'conv3', 'conv4', 'conv5', 'fc6', 'fc8', 'fc7']
 
 # How often we want to write the tf.summary data to disk
@@ -136,50 +137,50 @@ with tf.Session() as sess:
   # Loop over number of epochs
   for epoch in range(num_epochs):
 
-        print("{} Epoch number: {}".format(datetime.now(), epoch+1))
+    print("{} Epoch number: {}".format(datetime.now(), epoch+1))
 
-        # step = 1
-        for step in range(1, train_batches_per_epoch):
-        # while step < train_batches_per_epoch:
-            # Get a batch of images and labels
-            batch_xs, batch_ys = train_generator.next_batch(batch_size)
+    # step = 1
+    for step in range(1, train_batches_per_epoch):
+    # while step < train_batches_per_epoch:
+    # Get a batch of images and labels
+      batch_xs, batch_ys = train_generator.next_batch(batch_size)
 
-            # And run the training op
-            sess.run(train_op, feed_dict={x: batch_xs, 
-                                          y: batch_ys, 
-                                          keep_prob: dropout_rate})
+      # And run the training op
+      sess.run(train_op, feed_dict={x: batch_xs, 
+                                    y: batch_ys, 
+                                    keep_prob: dropout_rate})
 
-            # Generate summary with the current batch of data and write to file
-            if step%display_step == 0:
-                s = sess.run(merged_summary, feed_dict={x: batch_xs,
-                                                        y: batch_ys,
-                                                        keep_prob: 1.})
-                writer.add_summary(s, epoch*train_batches_per_epoch + step)
+      # Generate summary with the current batch of data and write to file
+      if step%display_step == 0:
+        s = sess.run(merged_summary, feed_dict={x: batch_xs,
+                                                y: batch_ys,
+                                                keep_prob: 1.})
+        writer.add_summary(s, epoch*train_batches_per_epoch + step)
 
-            # step += 1
+      # step += 1
 
         # Validate the model on the entire validation set
-        print("{} Start validation".format(datetime.now()))
-        test_acc = 0.
-        test_count = 0
-        for _ in range(val_batches_per_epoch):
-            batch_tx, batch_ty = val_generator.next_batch(batch_size)
-            acc = sess.run(accuracy, feed_dict={x: batch_tx,
-                                                y: batch_ty,
-                                                keep_prob: 1.})
-            test_acc += acc
-            test_count += 1
-        test_acc /= test_count
-        print("Validation Accuracy = {:.4f}".format(datetime.now(), test_acc))
+    print("{} Start validation".format(datetime.now()))
+    test_acc = 0.
+    test_count = 0
+    for _ in range(val_batches_per_epoch):
+      batch_tx, batch_ty = val_generator.next_batch(batch_size)
+      acc = sess.run(accuracy, feed_dict={x: batch_tx,
+                                          y: batch_ty,
+                                          keep_prob: 1.})
+      test_acc += acc
+      test_count += 1
+    test_acc /= test_count
+    print("Validation Accuracy = {:.4f}".format(datetime.now(), test_acc))
 
-        # Reset the file pointer of the image data generator
-        val_generator.reset_pointer()
-        train_generator.reset_pointer()
+    # Reset the file pointer of the image data generator
+    val_generator.reset_pointer()
+    train_generator.reset_pointer()
 
-        print("{} Saving checkpoint of model...".format(datetime.now()))
+    print("{} Saving checkpoint of model...".format(datetime.now()))
 
-        #save checkpoint of the model
-        checkpoint_name = os.path.join(checkpoint_path, 'model_epoch'+str(epoch+1)+'.ckpt')
-        save_path = saver.save(sess, checkpoint_name)
+    #save checkpoint of the model
+    checkpoint_name = os.path.join(checkpoint_path, 'model_epoch'+str(epoch+1)+'.ckpt')
+    save_path = saver.save(sess, checkpoint_name)
 
-        print("{} Model checkpoint saved at {}".format(datetime.now(), checkpoint_name))
+    print("{} Model checkpoint saved at {}".format(datetime.now(), checkpoint_name))
